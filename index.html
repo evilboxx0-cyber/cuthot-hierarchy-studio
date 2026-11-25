@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CutHot Hierarchy Studio — Unified Smart Hierarchy System for Unity</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            unity: {
+              bg: '#18181b',
+              panel: '#1f1f23',
+              surface: '#27272c',
+              border: '#323238',
+              hover: '#2e2e35',
+              select: '#2c5d87',
+              text: '#e4e4e7',
+              muted: '#a1a1aa',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #18181b;
+      color: #e4e4e7;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Subtle Unity grid background */
+    .unity-grid-bg {
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    /* Custom Scrollbars matching Unity Editor */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #18181b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #36363e;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4b4b56;
+    }
+
+    /* Blurred Label Shadow simulation matching Unity 3-slice feathered shadow */
+    .unity-label-shadow {
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.85), 0 0 2px #000;
+    }
+
+    /* Square Glass Bar simulation */
+    .glass-bar {
+      background: linear-gradient(180deg, rgba(35, 38, 46, 0.72) 0%, rgba(22, 24, 30, 0.82) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Custom range slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      background: #27272c;
+      height: 6px;
+      border-radius: 999px;
+      border: 1px solid #3f3f46;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #22d3ee;
+      cursor: pointer;
+      border: 2px solid #18181b;
+      box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+    }
+
+    /* Scanline effect for Overdrive / VHS */
+    .scanlines {
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      );
+      background-size: 100% 4px;
+    }
+  </style>
+</head>
+<body class="unity-grid-bg antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-50 bg-[#18181b]/90 backdrop-blur-md border-b border-unity-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- Unity Cube + CutHot Emblem SVG -->
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 via-violet-600 to-amber-500 p-[1.5px] shadow-lg shadow-cyan-500/20">
+          <div class="w-full h-full bg-[#18181b] rounded-[7px] flex items-center justify-center">
+            <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-white tracking-tight text-base sm:text-lg">CutHot Hierarchy Studio</span>
+            <span class="hidden sm:inline-block text-[11px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">v2.4 Editor</span>
+          </div>
+          <p class="text-[11px] text-unity-muted hidden sm:block">Unified Smart Hierarchy System for Unity</p>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-unity-muted">
+        <a href="#simulator" class="hover:text-cyan-400 transition-colors">Live Simulator</a>
+        <a href="#architecture" class="hover:text-cyan-400 transition-colors">Script Architecture</a>
+        <a href="#visual-anatomy" class="hover:text-cyan-400 transition-colors">Row Anatomy & Visuals</a>
+        <a href="#setup-guide" class="hover:text-cyan-400 transition-colors">Setup & Docs</a>
+      </nav>
+
+      <div class="flex items-center gap-2.5">
+        <a href="#setup-guide" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-unity-surface hover:bg-unity-hover text-white border border-unity-border transition">
+          Docs
+        </a>
+        <a href="#simulator" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white shadow-lg shadow-cyan-500/20 transition">
+          Try Live Demo
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. HERO SECTION -->
+  <section class="relative pt-12 pb-16 sm:pt-20 sm:pb-24 overflow-hidden">
+    <!-- Ambient Glow Orbs -->
+    <div class="pointer-events-none absolute -top-24 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    <div class="pointer-events-none absolute top-20 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center max-w-4xl mx-auto">
+        <!-- Capability Badges -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mb-6">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Unity 2021.3+ / Unity 6+ Ready
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/25">
+            Editor-Only (Zero Runtime Overhead)
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-violet-500/10 text-violet-300 border border-violet-500/25">
+            102 Themes Included
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-amber-500/10 text-amber-300 border border-amber-500/25">
+            Assembly Definition Included
+          </span>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12] mb-6">
+          Hierarchy Studio — <br class="hidden sm:inline" />
+          <span class="bg-gradient-to-r from-cyan-400 via-violet-400 to-amber-400 bg-clip-text text-transparent">
+            Unified Smart Hierarchy System
+          </span>
+        </h1>
+
+        <p class="text-base sm:text-lg lg:text-xl text-unity-muted max-w-3xl mx-auto leading-relaxed mb-8">
+          Transform your Unity Editor Hierarchy into an intuitive, animated, visually organized workspace with 
+          <span class="text-white font-medium">102 dynamic themes</span>, 
+          <span class="text-white font-medium">custom row banners</span>, 
+          <span class="text-white font-medium">glass button bars</span>, and 
+          <span class="text-white font-medium">smart component tagging</span>.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+          <a href="#architecture" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white shadow-xl shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+            <span>Explore Features</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+          </a>
+          <a href="#setup-guide" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-sm bg-unity-panel hover:bg-unity-surface text-white border border-unity-border transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span>Quick Start Guide</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. INTERACTIVE HIERARCHY SIMULATOR (LIVE PREVIEW) -->
+  <section id="simulator" class="py-12 sm:py-16 border-y border-unity-border bg-[#141417]/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-cyan-400 mb-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            Interactive Unity Editor Preview
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-white">Live Hierarchy Studio Simulator</h2>
+          <p class="text-sm text-unity-muted mt-1">Click any GameObject row to test the spring-damped selection cursor, theme shaders, and HUD badges.</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono text-unity-muted bg-unity-panel px-3 py-2 rounded-lg border border-unity-border">
+          <span>Spring Physics:</span>
+          <span id="springTelemetry" class="text-cyan-400">y=0.0px | v=0.0</span>
+        </div>
+      </div>
+
+      <!-- SIMULATOR WORKSPACE GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT: SIMULATED UNITY HIERARCHY WINDOW (7 cols) -->
+        <div class="lg:col-span-7 rounded-xl overflow-hidden border border-[#3a3a42] bg-[#202024] shadow-2xl">
+          <!-- Unity Tab Header -->
+          <div class="bg-[#19191c] px-3 py-2 border-b border-[#2e2e34] flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 bg-[#28282e] px-3 py-1 rounded-t border-t border-x border-[#3a3a42] text-xs font-medium text-white">
+                <svg class="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+                <span>Hierarchy</span>
+              </div>
+              <span class="text-xs text-unity-muted hidden sm:inline">SampleScene (102 Themes Loaded)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="activeThemeBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                Overdrive Cyberpunk
+              </span>
+            </div>
+          </div>
+
+          <!-- Unity Search / Create Toolbar -->
+          <div class="bg-[#232328] px-3 py-1.5 border-b border-[#2f2f36] flex items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-1.5 text-unity-muted">
+              <button id="triggerBurstBtn" class="px-2 py-1 rounded bg-[#2e2e35] hover:bg-[#383842] text-white font-medium flex items-center gap-1 border border-[#3f3f48] transition active:scale-95">
+                <span class="text-cyan-400 font-bold">+</span> Trigger FX Jolt
+              </button>
+              <button id="toggleExpandBtn" class="px-2 py-1 rounded bg-[#2e2e35] hover:bg-[#383842] text-unity-muted hover:text-white transition">
+                Collapse/Expand
+              </button>
+            </div>
+            <div class="flex items-center bg-[#18181b] border border-[#34343c] rounded px-2.5 py-1 w-40 sm:w-52 text-unity-muted">
+              <svg class="w-3.5 h-3.5 mr-1.5 text-unity-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <span class="text-[11px] truncate">All GameObjects (9)</span>
+            </div>
+          </div>
+
+          <!-- Scene Header Row -->
+          <div class="bg-[#26262c] px-3 py-1.5 border-b border-[#32323a] flex items-center justify-between text-xs font-semibold text-white">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-unity-muted">▼</span>
+              <span class="w-3.5 h-3.5 rounded-sm bg-gradient-to-tr from-amber-500 to-yellow-300 inline-block shadow-sm"></span>
+              <span>MainLevel_Arena</span>
+              <span class="text-[10px] font-normal text-unity-muted italic">*dirty</span>
+            </div>
+            <span class="text-[10px] font-mono text-unity-muted">9 Objects</span>
+          </div>
+
+          <!-- INTERACTIVE HIERARCHY CANVAS + ROWS CONTAINER -->
+          <div id="hierarchyViewport" class="relative select-none overflow-hidden bg-[#1e1e22]" style="min-height: 360px;">
+            <!-- Real-time HTML5 Canvas for Theme Particles, Matrix Rain, Scanlines, Spring Cursor & Screen Jolt -->
+            <canvas id="fxCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-20"></canvas>
+
+            <!-- Spring-Damped Animated Selection Cursor Highlight -->
+            <div id="springCursor" class="absolute left-0 right-0 h-9 pointer-events-none z-10 transition-colors duration-200"
+                 style="top: 0px; background: linear-gradient(90deg, rgba(34,211,238,0.24) 0%, rgba(139,92,246,0.14) 70%, transparent 100%); border-left: 3px solid #22d3ee;">
+            </div>
+
+            <!-- Hierarchy Rows List -->
+            <div id="hierarchyRows" class="relative z-10 divide-y divide-white/[0.03]">
+              <!-- Rows injected dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- Unity Bottom Status Bar -->
+          <div class="bg-[#19191c] px-3 py-1.5 border-t border-[#2e2e34] flex items-center justify-between text-[11px] font-mono text-unity-muted">
+            <span id="selectedObjectPath">MainLevel_Arena / Player_Controller</span>
+            <span class="text-emerald-400">0.00ms Runtime Cost</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: HIERARCHY STUDIO INSPECTOR / CONTROL PANEL (5 cols) -->
+        <div class="lg:col-span-5 rounded-xl border border-unity-border bg-unity-panel p-5 shadow-xl space-y-5">
+          <div class="flex items-center justify-between border-b border-unity-border pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+              <h3 class="font-bold text-white text-sm uppercase tracking-wider">Hierarchy Studio Inspector</h3>
+            </div>
+            <span class="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">EditorWindow</span>
+          </div>
+
+          <!-- Theme Selector -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-semibold text-unity-text">Animated Theme Preset (Signature Sample)</label>
+              <span class="text-[11px] font-mono text-cyan-400">102 Total in Asset</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" id="themeButtons">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- FX Intensity Slider (0 Standby to 5 Overdrive) -->
+          <div class="bg-[#18181b] p-3.5 rounded-lg border border-unity-border">
+            <div class="flex items-center justify-between mb-2">
+              <label for="fxLevelSlider" class="text-xs font-semibold text-white">FX Intensity Level</label>
+              <span id="fxLevelLabel" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300">
+                Level 4 — Surge
+              </span>
+            </div>
+            <input id="fxLevelSlider" type="range" min="0" max="5" value="4" class="w-full" />
+            <div class="flex justify-between text-[10px] font-mono text-unity-muted mt-1.5">
+              <span>0:Standby</span>
+              <span>1:Calm</span>
+              <span>2:Pulse</span>
+              <span>3:Active</span>
+              <span>4:Surge</span>
+              <span>5:Overdrive</span>
+            </div>
+          </div>
+
+          <!-- Visual Feature Toggles -->
+          <div class="space-y-2.5">
+            <div class="text-xs font-semibold text-unity-text">Row Styling & HUD Overlays</div>
+            
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#18181b] border border-unity-border cursor-pointer hover:border-cyan-500/40 transition">
+              <div>
+                <div class="text-xs font-medium text-white">Square Glass Bars (`BarSettings`)</div>
+                <div class="text-[11px] text-unity-muted">Smoky frosted panels with crisp inner borders</div>
+              </div>
+              <input id="toggleGlassBars" type="checkbox" checked class="w-4 h-4 accent-cyan-400 rounded" />
+            </label>
+
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#18181b] border border-unity-border cursor-pointer hover:border-cyan-500/40 transition">
+              <div>
+                <div class="text-xs font-medium text-white">Blurred Label Shadow</div>
+                <div class="text-[11px] text-unity-muted">3-slice feathered backdrop for high text contrast</div>
+              </div>
+              <input id="toggleLabelShadow" type="checkbox" checked class="w-4 h-4 accent-cyan-400 rounded" />
+            </label>
+
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#18181b] border border-unity-border cursor-pointer hover:border-cyan-500/40 transition">
+              <div>
+                <div class="text-xs font-medium text-white">Smart Component Type Badges</div>
+                <div class="text-[11px] text-unity-muted">Auto-tags CAMERA, LIGHT, UI, FX, AUDIO, MESH</div>
+              </div>
+              <input id="toggleTypeBadges" type="checkbox" checked class="w-4 h-4 accent-cyan-400 rounded" />
+            </label>
+
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#18181b] border border-unity-border cursor-pointer hover:border-cyan-500/40 transition">
+              <div>
+                <div class="text-xs font-medium text-white">Custom Row Background Banner</div>
+                <div class="text-[11px] text-unity-muted">Procedural gradient/grid Texture2D with L→R fade</div>
+              </div>
+              <input id="toggleCustomBanner" type="checkbox" checked class="w-4 h-4 accent-cyan-400 rounded" />
+            </label>
+
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[#18181b] border border-unity-border cursor-pointer hover:border-cyan-500/40 transition">
+              <div>
+                <div class="text-xs font-medium text-white">Hide Banner on Select / Hover</div>
+                <div class="text-[11px] text-unity-muted">Automatically reveals clean Unity text on focus</div>
+              </div>
+              <input id="toggleHideOnHover" type="checkbox" class="w-4 h-4 accent-cyan-400 rounded" />
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. WHAT THE SCRIPTS DO (ARCHITECTURE & CORE MODULES) -->
+  <section id="architecture" class="py-16 sm:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mb-12">
+        <span class="text-xs font-mono uppercase tracking-wider text-violet-400 font-semibold">Technical Architecture</span>
+        <h2 class="text-2xl sm:text-4xl font-bold text-white mt-2">Clean, Editor-Isolated C# Architecture</h2>
+        <p class="text-unity-muted mt-3 text-base leading-relaxed">
+          CutHot Hierarchy Studio is engineered specifically for production Unity pipelines—combining an isolated Assembly Definition with a unified, zero-allocation IMGUI `EditorWindow` system.
+        </p>
+      </div>
+
+      <!-- TWO CORE FILES OVERVIEW -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+        <!-- File 1: asmdef -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border p-6 sm:p-7 relative overflow-hidden">
+          <div class="absolute top-0 right-0 px-3 py-1 bg-amber-500/10 border-b border-l border-amber-500/25 rounded-bl-xl text-[11px] font-mono text-amber-300">
+            Assembly Definition
+          </div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-bold text-sm">
+              .asm
+            </div>
+            <div>
+              <h3 class="font-mono font-bold text-white text-base sm:text-lg">CutHot.HierarchyStudio.Editor.asmdef</h3>
+              <p class="text-xs text-unity-muted">Strict Editor-Only Compilation Boundary</p>
+            </div>
+          </div>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            Isolates all Hierarchy Studio code strictly to the Unity Editor via <code class="text-amber-300 bg-black/40 px-1.5 py-0.5 rounded font-mono text-xs">"includePlatforms": ["Editor"]</code>. 
+            Your standalone builds (PC, Console, Mobile, WebGL) never compile or include a single byte of tool code, ensuring <strong class="text-white">zero runtime overhead</strong> and faster script domain reloads.
+          </p>
+          <div class="bg-[#141417] rounded-xl p-3.5 border border-unity-border font-mono text-xs text-unity-text overflow-x-auto">
+<pre>{
+  "name": "CutHot.HierarchyStudio.Editor",
+  "rootNamespace": "CutHot.HierarchyStudio",
+  "includePlatforms": [ "Editor" ],
+  "autoReferenced": true
+}</pre>
+          </div>
+        </div>
+
+        <!-- File 2: HierarchyStudioWindow.cs -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border p-6 sm:p-7 relative overflow-hidden">
+          <div class="absolute top-0 right-0 px-3 py-1 bg-cyan-500/10 border-b border-l border-cyan-500/25 rounded-bl-xl text-[11px] font-mono text-cyan-300">
+            Core Partial Class
+          </div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-mono font-bold text-sm">
+              .cs
+            </div>
+            <div>
+              <h3 class="font-mono font-bold text-white text-base sm:text-lg">HierarchyStudioWindow.cs</h3>
+              <p class="text-xs text-unity-muted">namespace CutHot.HierarchyStudio • EditorWindow</p>
+            </div>
+          </div>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            Hooks directly into <code class="text-cyan-300 bg-black/40 px-1.5 py-0.5 rounded font-mono text-xs">EditorApplication.hierarchyWindowItemOnGUI</code> to orchestrate custom banner rendering, spring-physics cursor interpolation, cached 3-slice shadow textures, and automatic component classification across 4 integrated subsystems.
+          </p>
+          <div class="flex flex-wrap gap-2 text-[11px] font-mono">
+            <span class="px-2.5 py-1 rounded bg-[#18181b] border border-unity-border text-cyan-300">Persistent JSON / EditorPrefs</span>
+            <span class="px-2.5 py-1 rounded bg-[#18181b] border border-unity-border text-violet-300">Unity 6 EntityId Ready</span>
+            <span class="px-2.5 py-1 rounded bg-[#18181b] border border-unity-border text-emerald-300">Zero GC Repaint Loop</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 MAJOR SUBSYSTEMS GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Subsystem 1 -->
+        <div class="rounded-2xl bg-unity-panel/70 border border-unity-border p-6 hover:border-cyan-500/40 transition">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono font-bold px-2.5 py-1 rounded bg-cyan-500/15 text-cyan-400">SUBSYSTEM 01</span>
+            <span class="text-xs font-mono text-unity-muted">Texture2D • UV Crop</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Custom Row Images & Banners</h3>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            Attach any project <code class="text-cyan-300 font-mono text-xs">Texture2D</code> across full hierarchy rows to visually mark bosses, managers, or environment zones.
+          </p>
+          <ul class="space-y-1.5 text-xs text-unity-text font-mono">
+            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> Precision UV framing via <span class="text-cyan-300">cropX</span>, <span class="text-cyan-300">cropY</span>, &amp; <span class="text-cyan-300">cropZoom</span></li>
+            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> Smooth left-to-right opacity fade gradients</li>
+            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> <span class="text-cyan-300">spreadAcrossSelection</span> spans one banner across multi-row groups</li>
+            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> <span class="text-cyan-300">HideImageOnSelectOrHover</span> for unobstructed editing</li>
+          </ul>
+        </div>
+
+        <!-- Subsystem 2 -->
+        <div class="rounded-2xl bg-unity-panel/70 border border-unity-border p-6 hover:border-violet-500/40 transition">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono font-bold px-2.5 py-1 rounded bg-violet-500/15 text-violet-400">SUBSYSTEM 02</span>
+            <span class="text-xs font-mono text-unity-muted">3-Slice • BarSettings</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Blurred Label Shadows & Square Glass Bars</h3>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            Guarantees crystal-clear readability even over bright or high-detail banner artwork using runtime-baked soft shadow textures and glass containers.
+          </p>
+          <ul class="space-y-1.5 text-xs text-unity-text font-mono">
+            <li class="flex items-center gap-2"><span class="text-violet-400">▸</span> Baked 3-slice feathered shadow behind icons &amp; labels</li>
+            <li class="flex items-center gap-2"><span class="text-violet-400">▸</span> Configurable smoky glass bars (<span class="text-violet-300">BarSettings</span>)</li>
+            <li class="flex items-center gap-2"><span class="text-violet-400">▸</span> Adjustable fill opacity, crisp border width &amp; row gaps</li>
+            <li class="flex items-center gap-2"><span class="text-violet-400">▸</span> Adapts dynamically to Unity Light &amp; Dark skins</li>
+          </ul>
+        </div>
+
+        <!-- Subsystem 3 -->
+        <div class="rounded-2xl bg-unity-panel/70 border border-unity-border p-6 hover:border-amber-500/40 transition">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono font-bold px-2.5 py-1 rounded bg-amber-500/15 text-amber-400">SUBSYSTEM 03</span>
+            <span class="text-xs font-mono text-unity-muted">102 Themes • Spring Physics</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">102 Animated Themes & Overdrive FX Engine</h3>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            A spring-damped selection cursor (<code class="text-amber-300 font-mono text-xs">_curY</code>, <code class="text-amber-300 font-mono text-xs">_curV</code>) glides smoothly between selections with 6 scalable FX tiers (0–5).
+          </p>
+          <ul class="space-y-1.5 text-xs text-unity-text font-mono">
+            <li class="flex items-center gap-2"><span class="text-amber-400">▸</span> <strong>Core:</strong> Overdrive, Matrix, Aurora, Ember, Synthwave, Radar, Plasma, Frost, Toxic, Crimson, Sakura, Circuit, Storm, Galaxy, Gold, Pixel</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▸</span> <strong>Extra &amp; Packs:</strong> Abyss, VHS, Blueprint, Equalizer, Comic + Elemental &amp; Action packs</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▸</span> Screen-space jolt, chromatic tears &amp; particle bursts</li>
+          </ul>
+        </div>
+
+        <!-- Subsystem 4 -->
+        <div class="rounded-2xl bg-unity-panel/70 border border-unity-border p-6 hover:border-emerald-500/40 transition">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono font-bold px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-400">SUBSYSTEM 04</span>
+            <span class="text-xs font-mono text-unity-muted">Auto-Tag • IconRule</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Smart Component Type Badges & Icon Rules</h3>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            Inspects GameObject components automatically to display animated glyph-decoding badges while respecting custom third-party icons.
+          </p>
+          <ul class="space-y-1.5 text-xs text-unity-text font-mono">
+            <li class="flex items-center gap-2"><span class="text-emerald-400">▸</span> Auto-detects <span class="text-emerald-300">Camera</span>, <span class="text-emerald-300">Light</span>, <span class="text-emerald-300">RectTransform</span> (UI), <span class="text-emerald-300">ParticleSystem</span> (FX), <span class="text-emerald-300">AudioSource</span>, &amp; <span class="text-emerald-300">Renderer</span> (MESH)</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400">▸</span> Keyword-based <span class="text-emerald-300">IconRule</span> cutouts preserve Cinemachine &amp; custom script gizmos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. VISUAL EXPLANATIONS (ANATOMY OF A STYLED HIERARCHY ROW & WALKTHROUGH) -->
+  <section id="visual-anatomy" class="py-16 sm:py-24 border-y border-unity-border bg-[#141417]/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold">Visual Breakdown</span>
+        <h2 class="text-2xl sm:text-4xl font-bold text-white mt-2">Anatomy of a Styled Hierarchy Row</h2>
+        <p class="text-unity-muted mt-3 text-sm sm:text-base">
+          Every pixel of a Unity Hierarchy row is carefully layered so native Unity foldouts, visibility toggles, and third-party icons remain 100% functional.
+        </p>
+      </div>
+
+      <!-- INTERACTIVE ANATOMY DIAGRAM CARD -->
+      <div class="rounded-2xl bg-unity-panel border border-unity-border p-6 sm:p-8 shadow-2xl mb-12">
+        <!-- Interactive Row Layer Inspector -->
+        <div class="relative bg-[#18181b] rounded-xl p-6 sm:p-10 border border-unity-border overflow-x-auto">
+          <div class="min-w-[680px]">
+            <!-- Top Callout Markers -->
+            <div class="grid grid-cols-6 gap-2 text-[11px] font-mono mb-3">
+              <div class="text-amber-400 flex flex-col items-start">
+                <span class="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">1. Left Gutter</span>
+                <span class="text-unity-muted text-[10px] mt-1">Eye / Hand Pick</span>
+              </div>
+              <div class="text-cyan-400 flex flex-col items-start">
+                <span class="px-2 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30">2. Foldout Arrow</span>
+                <span class="text-unity-muted text-[10px] mt-1">Native Tree Chevron</span>
+              </div>
+              <div class="text-violet-400 flex flex-col items-start">
+                <span class="px-2 py-0.5 rounded bg-violet-500/15 border border-violet-500/30">3. IconRule Cutout</span>
+                <span class="text-unity-muted text-[10px] mt-1">Preserves Gizmos</span>
+              </div>
+              <div class="text-emerald-400 flex flex-col items-start">
+                <span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">4. 3-Slice Shadow</span>
+                <span class="text-unity-muted text-[10px] mt-1">Feathered Contrast</span>
+              </div>
+              <div class="text-pink-400 flex flex-col items-start">
+                <span class="px-2 py-0.5 rounded bg-pink-500/15 border border-pink-500/30">5. Custom Banner</span>
+                <span class="text-unity-muted text-[10px] mt-1">UV Crop + L→R Fade</span>
+              </div>
+              <div class="text-sky-400 flex flex-col items-end text-right">
+                <span class="px-2 py-0.5 rounded bg-sky-500/15 border border-sky-500/30">6. Smart Tag</span>
+                <span class="text-unity-muted text-[10px] mt-1">Glyph Decode HUD</span>
+              </div>
+            </div>
+
+            <!-- Magnified Row Render -->
+            <div class="relative h-16 rounded-xl glass-bar overflow-hidden flex items-center px-3 justify-between border border-cyan-500/40 shadow-lg shadow-cyan-500/10">
+              <!-- Layer 5: Custom Row Banner with L->R Opacity Fade -->
+              <div class="absolute inset-0 pointer-events-none"
+                   style="background: linear-gradient(90deg, rgba(14,165,233,0.12) 0%, rgba(139,92,246,0.42) 55%, rgba(245,158,11,0.55) 100%);">
+                <svg class="w-full h-full opacity-25" preserveAspectRatio="none" viewBox="0 0 400 60">
+                  <defs>
+                    <pattern id="anatomyGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#22d3ee" stroke-width="0.7"/>
+                    </pattern>
+                  </defs>
+                  <rect width="400" height="60" fill="url(#anatomyGrid)" />
+                </svg>
+              </div>
+
+              <!-- Left Side: Gutter + Foldout + Icon + Shadowed Label -->
+              <div class="relative z-10 flex items-center gap-3">
+                <!-- 1. Left Utility Gutter -->
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-black/50 border border-white/10 text-unity-muted text-xs" title="Unity Scene Visibility & Picking Gutter">
+                  <svg class="w-3.5 h-3.5 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="w-3.5 h-3.5 text-unity-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/></svg>
+                </div>
+
+                <!-- 2. Foldout Chevron -->
+                <span class="text-white/90 text-xs font-bold">▼</span>
+
+                <!-- 4. Blurred Label Shadow Container + 3. IconRule Cutout + Label -->
+                <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-black/65 shadow-[0_0_16px_rgba(0,0,0,0.9)] border border-white/5">
+                  <div class="w-5 h-5 rounded bg-violet-500/30 border border-violet-400 flex items-center justify-center text-violet-200 text-xs font-bold">
+                    🎥
+                  </div>
+                  <span class="font-semibold text-white text-sm sm:text-base unity-label-shadow tracking-tight">
+                    CM_VirtualCamera_BossArena
+                  </span>
+                </div>
+              </div>
+
+              <!-- Right Side: 6. Smart Component Type Badge -->
+              <div class="relative z-10 flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_12px_rgba(34,211,238,0.3)]">
+                  [CAMERA]
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer Breakdown Legend -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 text-xs">
+          <div class="p-3.5 rounded-xl bg-[#18181b] border border-unity-border">
+            <span class="font-mono font-bold text-amber-400">01 / Left Utility Gutter</span>
+            <p class="text-unity-muted mt-1">Offsets custom glass bars past Unity's native Scene Visibility (Eye) and Picking (Hand) column so click targets are never blocked.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-[#18181b] border border-unity-border">
+            <span class="font-mono font-bold text-violet-400">02 / IconRule Cutout Mask</span>
+            <p class="text-unity-muted mt-1">Matches keywords like <code class="text-violet-300">CM_</code> or <code class="text-violet-300">Cinemachine</code> to keep custom script icons crisp above row banners.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-[#18181b] border border-unity-border">
+            <span class="font-mono font-bold text-emerald-400">03 / 3-Slice Blurred Shadow</span>
+            <p class="text-unity-muted mt-1">Dynamically measures label width and draws a soft-feathered shadow pill behind text and icons for 100% legibility.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISUAL WALKTHROUGH CARDS (EDITOR WINDOW & SCENE WORKFLOW) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Card A: Hierarchy Studio Settings Window Mockup / Visual -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border overflow-hidden flex flex-col">
+          <div class="p-5 border-b border-unity-border flex items-center justify-between">
+            <div>
+              <span class="text-[11px] font-mono text-cyan-400 uppercase">Editor Window Walkthrough</span>
+              <h3 class="text-lg font-bold text-white">Dockable Hierarchy Studio Control Panel</h3>
+            </div>
+            <button onclick="openLightbox('studio-window')" class="px-3 py-1.5 rounded-lg bg-unity-surface hover:bg-unity-hover text-xs font-medium text-white border border-unity-border transition">
+              Expand View
+            </button>
+          </div>
+          <!-- Stylized Vector / UI Visual Mockup of the Studio Window -->
+          <div class="p-5 bg-[#161619] flex-1 flex items-center justify-center">
+            <div class="w-full rounded-xl border border-[#34343d] bg-[#212126] p-4 shadow-xl space-y-3 font-sans text-xs">
+              <div class="flex items-center justify-between border-b border-[#32323a] pb-2">
+                <span class="font-bold text-white flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  Hierarchy Studio — Style &amp; FX Inspector
+                </span>
+                <span class="font-mono text-[10px] text-unity-muted">Docked Tab</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div class="bg-[#18181b] p-2.5 rounded border border-[#2f2f37]">
+                  <div class="text-[10px] text-unity-muted mb-1">Row Banner Texture2D</div>
+                  <div class="h-10 rounded bg-gradient-to-r from-cyan-600/40 via-violet-600/50 to-amber-500/40 border border-white/10 flex items-center justify-center font-mono text-[10px] text-white">
+                    Banner_CyberGrid.png
+                  </div>
+                </div>
+                <div class="bg-[#18181b] p-2.5 rounded border border-[#2f2f37] space-y-1.5">
+                  <div class="flex justify-between text-[10px]"><span class="text-unity-muted">Crop Zoom</span><span class="text-cyan-400 font-mono">1.35x</span></div>
+                  <div class="w-full h-1.5 bg-[#2a2a32] rounded-full overflow-hidden"><div class="w-2/3 h-full bg-cyan-400"></div></div>
+                  <div class="flex justify-between text-[10px]"><span class="text-unity-muted">L→R Fade</span><span class="text-violet-400 font-mono">0.85</span></div>
+                  <div class="w-full h-1.5 bg-[#2a2a32] rounded-full overflow-hidden"><div class="w-4/5 h-full bg-violet-400"></div></div>
+                </div>
+              </div>
+              <div class="bg-[#18181b] p-2.5 rounded border border-[#2f2f37] flex items-center justify-between">
+                <span class="text-[11px] text-unity-text">Active Theme Pack: <strong class="text-amber-400">Core / Overdrive</strong></span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px]">Apply to 4 Selected</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 bg-unity-panel border-t border-unity-border text-xs text-unity-muted">
+            Select single or multiple GameObjects in your scene to batch-apply custom textures, glass bars, and UV crop offsets in one click.
+          </div>
+        </div>
+
+        <!-- Card B: Multi-Row Spread & Component Tagging Visual -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border overflow-hidden flex flex-col">
+          <div class="p-5 border-b border-unity-border flex items-center justify-between">
+            <div>
+              <span class="text-[11px] font-mono text-violet-400 uppercase">Scene Organization</span>
+              <h3 class="text-lg font-bold text-white">Multi-Row Banner Spread &amp; Auto-Tags</h3>
+            </div>
+            <button onclick="openLightbox('multi-spread')" class="px-3 py-1.5 rounded-lg bg-unity-surface hover:bg-unity-hover text-xs font-medium text-white border border-unity-border transition">
+              Expand View
+            </button>
+          </div>
+          <div class="p-5 bg-[#161619] flex-1 flex items-center justify-center">
+            <div class="w-full rounded-xl border border-[#34343d] bg-[#212126] overflow-hidden shadow-xl font-sans text-xs">
+              <div class="px-3 py-1.5 bg-[#19191c] border-b border-[#2e2e35] flex justify-between text-[10px] font-mono text-unity-muted">
+                <span>Hierarchy (spreadAcrossSelection = true)</span>
+                <span class="text-violet-400">3-Row Unified Banner</span>
+              </div>
+              <div class="relative divide-y divide-white/5">
+                <!-- Unified multi-row gradient banner -->
+                <div class="absolute inset-0 pointer-events-none opacity-35 bg-gradient-to-r from-violet-600/20 via-fuchsia-600/50 to-amber-500/60"></div>
+                <div class="relative z-10 px-3 py-2 flex items-center justify-between">
+                  <span class="font-semibold text-white unity-label-shadow">▼ Boss_Encounter_Group</span>
+                  <span class="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">ROOT</span>
+                </div>
+                <div class="relative z-10 pl-7 pr-3 py-2 flex items-center justify-between">
+                  <span class="text-white unity-label-shadow">Dragon_VFX_Emitter</span>
+                  <span class="px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-300 border border-amber-400/40 font-mono text-[10px]">FX</span>
+                </div>
+                <div class="relative z-10 pl-7 pr-3 py-2 flex items-center justify-between">
+                  <span class="text-white unity-label-shadow">Roar_AudioSource</span>
+                  <span class="px-1.5 py-0.5 rounded bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 font-mono text-[10px]">AUDIO</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 bg-unity-panel border-t border-unity-border text-xs text-unity-muted">
+            Enable <code class="text-violet-300 font-mono">spreadAcrossSelection</code> to slice a single wide illustration seamlessly across parent and child rows.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. HOW TO USE (STEP-BY-STEP SETUP & WORKFLOW) -->
+  <section id="setup-guide" class="py-16 sm:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mb-12">
+        <span class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-semibold">Quick Start Documentation</span>
+        <h2 class="text-2xl sm:text-4xl font-bold text-white mt-2">4-Step Setup &amp; Production Workflow</h2>
+        <p class="text-unity-muted mt-3 text-base">
+          Get CutHot Hierarchy Studio running in your Unity project in under 60 seconds.
+        </p>
+      </div>
+
+      <!-- 4 STEPS TIMELINE -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <!-- Step 1 -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-mono font-bold text-sm flex items-center justify-center">1</span>
+            <h3 class="text-lg font-bold text-white">Installation &amp; Folder Structure</h3>
+          </div>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            Place the scripts and assembly definition inside an <code class="text-cyan-300 font-mono text-xs">Editor</code> directory anywhere in your <code class="text-cyan-300 font-mono text-xs">Assets/</code> folder:
+          </p>
+          <div class="bg-[#141417] rounded-xl p-3.5 border border-unity-border font-mono text-xs text-unity-text space-y-1">
+            <div class="text-unity-muted">Assets/</div>
+            <div class="pl-3 text-unity-muted">└── CutHot/</div>
+            <div class="pl-7 text-unity-muted">└── HierarchyStudio/</div>
+            <div class="pl-11 text-amber-400">└── Editor/</div>
+            <div class="pl-14 text-cyan-300">├── CutHot.HierarchyStudio.Editor.asmdef</div>
+            <div class="pl-14 text-emerald-300">├── HierarchyStudioWindow.cs</div>
+            <div class="pl-14 text-emerald-300">└── HierarchyStudioWindow.Part2.cs</div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-500/40 text-violet-300 font-mono font-bold text-sm flex items-center justify-center">2</span>
+            <h3 class="text-lg font-bold text-white">Opening the Studio Window</h3>
+          </div>
+          <p class="text-sm text-unity-muted leading-relaxed mb-4">
+            Open the control panel from Unity's top menu bar:
+            <span class="inline-block mt-1 px-2.5 py-1 rounded bg-[#141417] border border-unity-border font-mono text-xs text-violet-300">
+              Tools &gt; CutHot &gt; Hierarchy Studio
+            </span>
+          </p>
+          <p class="text-sm text-unity-muted leading-relaxed">
+            Drag and dock the <strong class="text-white">Hierarchy Studio</strong> tab right next to your Inspector or below your Hierarchy window for instant styling access while building levels.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono font-bold text-sm flex items-center justify-center">3</span>
+            <h3 class="text-lg font-bold text-white">Styling Rows with Textures &amp; Glass Bars</h3>
+          </div>
+          <p class="text-sm text-unity-muted leading-relaxed">
+            Select one or more GameObjects in the Hierarchy, assign any <code class="text-amber-300 font-mono text-xs">Texture2D</code> in the Studio panel, fine-tune <code class="text-amber-300 font-mono text-xs">Crop / Zoom / L→R Fade</code>, toggle <strong class="text-white">Square Bars</strong> and <strong class="text-white">Label Shadow</strong>, and click <strong class="text-cyan-400">Apply</strong>.
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="rounded-2xl bg-unity-panel border border-unity-border p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold text-sm flex items-center justify-center">4</span>
+            <h3 class="text-lg font-bold text-white">Choosing Themes &amp; FX Intensity</h3>
+          </div>
+          <p class="text-sm text-unity-muted leading-relaxed">
+            Browse <strong class="text-white">102 animated themes</strong> across Core, Extra, Elemental, and Action packs. Dial in <strong class="text-white">FX Level (0–5)</strong>, toggle <code class="text-emerald-300 font-mono text-xs">Always Animate</code> for continuous ambient motion, and add custom <code class="text-emerald-300 font-mono text-xs">Icon Rules</code> for third-party assets.
+          </p>
+        </div>
+      </div>
+
+      <!-- COPYABLE CODE & UNITY 6 COMPATIBILITY PANEL -->
+      <div class="rounded-2xl bg-unity-panel border border-unity-border overflow-hidden">
+        <div class="bg-[#19191c] px-4 py-3 border-b border-unity-border flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button id="tabAsmdef" onclick="switchCodeTab('asmdef')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition">
+              CutHot.HierarchyStudio.Editor.asmdef
+            </button>
+            <button id="tabUnity6" onclick="switchCodeTab('unity6')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-unity-surface text-unity-muted hover:text-white border border-unity-border transition">
+              Unity 6 EntityId Compatibility Note
+            </button>
+          </div>
+          <button id="copyCodeBtn" onclick="copyCurrentCode()" class="px-3 py-1.5 rounded-lg text-xs font-mono font-medium bg-unity-surface hover:bg-unity-hover text-white border border-unity-border flex items-center gap-1.5 transition">
+            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span id="copyBtnText">Copy Snippet</span>
+          </button>
+        </div>
+        <div class="p-5 bg-[#121215] font-mono text-xs sm:text-sm text-unity-text overflow-x-auto">
+          <pre id="codeDisplayBlock"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-unity-border bg-[#141417] py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+        <span class="font-bold text-white text-sm">CutHot Hierarchy Studio</span>
+        <span class="text-xs text-unity-muted">• Unity Editor Extension</span>
+      </div>
+      <div class="text-xs text-unity-muted text-center sm:text-right">
+        Compatible with Unity 2021.3 LTS, 2022.3 LTS, and Unity 6+ (<code class="text-cyan-400 font-mono">UNITY_6000_4_OR_NEWER</code>). Zero runtime overhead.
+      </div>
+    </div>
+  </footer>
+
+  <!-- LIGHTBOX MODAL FOR VISUAL WALKTHROUGH -->
+  <div id="lightboxModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeLightbox()">
+    <div class="max-w-2xl w-full rounded-2xl bg-unity-panel border border-cyan-500/40 p-6 shadow-2xl" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-unity-border pb-3 mb-4">
+        <h4 id="lightboxTitle" class="font-bold text-white text-base">Visual Inspection</h4>
+        <button onclick="closeLightbox()" class="px-2.5 py-1 rounded bg-unity-surface hover:bg-unity-hover text-xs text-white">ESC / Close</button>
+      </div>
+      <p id="lightboxDesc" class="text-sm text-unity-muted leading-relaxed mb-4"></p>
+      <div class="p-4 rounded-xl bg-[#141417] border border-unity-border font-mono text-xs text-cyan-300">
+        Tip: Use the Live Hierarchy Simulator above to test these exact row styling features interactively in real time.
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE SIMULATOR & DOCUMENTATION ENGINE -->
+  <script>
+    // ==========================================
+    // 1. HIERARCHY DATA & THEME DEFINITIONS
+    // ==========================================
+    const hierarchyItems = [
+      { id: 0, name: 'Main Camera', depth: 0, hasChildren: false, badge: 'CAMERA', badgeColor: 'cyan', icon: '🎥', bannerGrad: 'from-cyan-500/25 via-sky-500/15 to-transparent' },
+      { id: 1, name: 'Directional Light', depth: 0, hasChildren: false, badge: 'LIGHT', badgeColor: 'amber', icon: '☀️', bannerGrad: 'from-amber-500/25 via-yellow-500/15 to-transparent' },
+      { id: 2, name: 'Player_Controller', depth: 0, hasChildren: true, expanded: true, badge: 'MESH', badgeColor: 'violet', icon: '🧊', bannerGrad: 'from-violet-600/35 via-cyan-500/25 to-fuchsia-500/20' },
+      { id: 3, name: 'CM_PlayerFollowCam', depth: 1, hasChildren: false, badge: 'CAMERA', badgeColor: 'cyan', icon: '🎬', isRuleCutout: true, bannerGrad: 'from-sky-500/20 to-transparent' },
+      { id: 4, name: 'Enemy_Spawner', depth: 0, hasChildren: true, expanded: true, badge: 'MESH', badgeColor: 'rose', icon: '👾', bannerGrad: 'from-rose-600/30 via-orange-500/20 to-transparent' },
+      { id: 5, name: 'FX_Explosion', depth: 1, hasChildren: false, badge: 'FX', badgeColor: 'amber', icon: '💥', bannerGrad: 'from-amber-600/30 via-red-500/20 to-transparent' },
+      { id: 6, name: 'UI_Canvas', depth: 0, hasChildren: false, badge: 'UI', badgeColor: 'emerald', icon: '🖼️', bannerGrad: 'from-emerald-500/25 via-teal-500/15 to-transparent' },
+      { id: 7, name: 'AudioManager', depth: 0, hasChildren: false, badge: 'AUDIO', badgeColor: 'pink', icon: '🔊', bannerGrad: 'from-pink-500/25 via-purple-500/15 to-transparent' },
+    ];
+
+    const themes = [
+      { id: 'overdrive', name: 'Overdrive', pack: 'Core', primary: '#22d3ee', secondary: '#a855f7', bgTint: 'rgba(34,211,238,0.22)', particleType: 'cyber' },
+      { id: 'matrix', name: 'Matrix Rain', pack: 'Core', primary: '#22c55e', secondary: '#15803d', bgTint: 'rgba(34,197,94,0.22)', particleType: 'matrix' },
+      { id: 'aurora', name: 'Aurora', pack: 'Core', primary: '#2dd4bf', secondary: '#818cf8', bgTint: 'rgba(45,212,191,0.22)', particleType: 'aurora' },
+      { id: 'synthwave', name: 'Synthwave', pack: 'Core', primary: '#f472b6', secondary: '#f59e0b', bgTint: 'rgba(244,114,182,0.24)', particleType: 'synth' },
+      { id: 'ember', name: 'Ember', pack: 'Elemental', primary: '#fb923c', secondary: '#ef4444', bgTint: 'rgba(251,146,60,0.24)', particleType: 'ember' },
+      { id: 'blueprint', name: 'Blueprint', pack: 'Extra', primary: '#38bdf8', secondary: '#0284c7', bgTint: 'rgba(56,189,248,0.22)', particleType: 'blueprint' },
+      { id: 'sakura', name: 'Sakura', pack: 'Core', primary: '#f9a8d4', secondary: '#f43f5e', bgTint: 'rgba(249,168,212,0.22)', particleType: 'sakura' },
+      { id: 'arcade', name: 'Arcade', pack: 'Action', primary: '#facc15', secondary: '#a855f7', bgTint: 'rgba(250,204,21,0.22)', particleType: 'arcade' },
+    ];
+
+    const fxLabels = [
+      'Level 0 — Standby',
+      'Level 1 — Calm',
+      'Level 2 — Pulse',
+      'Level 3 — Active',
+      'Level 4 — Surge',
+      'Level 5 — Overdrive'
+    ];
+
+    // Simulator State
+    let state = {
+      selectedId: 2,
+      hoveredId: null,
+      activeTheme: themes[0],
+      fxLevel: 4,
+      glassBars: true,
+      labelShadow: true,
+      typeBadges: true,
+      customBanner: true,
+      hideOnHover: false,
+      collapsed: false,
+      joltTime: 0
+    };
+
+    // Spring Physics Variables (_curY, _curV matching HierarchyStudioWindow.cs)
+    let _curY = 0;
+    let _curV = 0;
+    let targetY = 0;
+    const ROW_HEIGHT = 42;
+
+    // Particles array for Canvas FX
+    let particles = [];
+
+    // ==========================================
+    // 2. RENDER THEME BUTTONS & HIERARCHY ROWS
+    // ==========================================
+    function renderThemeButtons() {
+      const container = document.getElementById('themeButtons');
+      container.innerHTML = themes.map(t => {
+        const isActive = t.id === state.activeTheme.id;
+        return `
+          <button onclick="selectTheme('${t.id}')"
+            class="px-2.5 py-2 rounded-lg text-left border transition flex flex-col justify-between ${
+              isActive 
+                ? 'bg-[#282830] border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]' 
+                : 'bg-[#18181b] border-unity-border hover:border-white/25'
+            }">
+            <div class="flex items-center justify-between w-full mb-1">
+              <span class="w-2.5 h-2.5 rounded-full" style="background:${t.primary}; box-shadow: 0 0 6px ${t.primary};"></span>
+              <span class="text-[9px] font-mono text-unity-muted">${t.pack}</span>
+            </div>
+            <span class="text-[11px] font-semibold text-white truncate w-full">${t.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function getBadgeStyle(color) {
+      const map = {
+        cyan: 'bg-cyan-500/20 text-cyan-300 border-cyan-400/40',
+        amber: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+        violet: 'bg-violet-500/20 text-violet-300 border-violet-400/40',
+        rose: 'bg-rose-500/20 text-rose-300 border-rose-400/40',
+        emerald: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
+        pink: 'bg-pink-500/20 text-pink-300 border-pink-400/40',
+      };
+      return map[color] || map.cyan;
+    }
+
+    function getVisibleItems() {
+      if (!state.collapsed) return hierarchyItems;
+      return hierarchyItems.filter(item => item.depth === 0);
+    }
+
+    function renderHierarchyRows() {
+      const container = document.getElementById('hierarchyRows');
+      const visible = getVisibleItems();
+
+      container.innerHTML = visible.map((item, idx) => {
+        const isSelected = item.id === state.selectedId;
+        const isHovered = item.id === state.hoveredId;
+        const hideBanner = state.hideOnHover && (isSelected || isHovered);
+
+        return `
+          <div onclick="selectRow(${item.id}, ${idx})"
+               onmouseenter="hoverRow(${item.id})"
+               onmouseleave="hoverRow(null)"
+               style="height: ${ROW_HEIGHT}px;"
+               class="relative flex items-center justify-between px-3 cursor-pointer transition-colors group">
+            
+            <!-- Custom Row Background Texture/Banner -->
+            ${state.customBanner && !hideBanner ? `
+              <div class="absolute inset-y-0.5 left-12 right-1 rounded-md bg-gradient-to-r ${item.bannerGrad} opacity-85 pointer-events-none transition-opacity duration-200"></div>
+            ` : ''}
+
+            <!-- Square Glass Bar Container -->
+            <div class="relative z-10 flex items-center justify-between w-full h-[34px] px-2 rounded-md transition-all ${
+              state.glassBars ? 'glass-bar' : ''
+            }">
+              <!-- Left Side: Utility Gutter + Indent + Foldout + Icon + Label -->
+              <div class="flex items-center gap-2 min-w-0">
+                <!-- Left Utility Gutter (Eye icon) -->
+                <span class="text-[11px] text-unity-muted/70 group-hover:text-cyan-400 transition-colors w-4 text-center" title="Visibility Toggle">
+                  👁
+                </span>
+
+                <!-- Hierarchy Depth Indent -->
+                <span style="width: ${item.depth * 16}px" class="inline-block shrink-0"></span>
+
+                <!-- Foldout Chevron -->
+                <span class="w-3 text-[10px] text-unity-muted shrink-0">
+                  ${item.hasChildren ? (state.collapsed ? '▶' : '▼') : ''}
+                </span>
+
+                <!-- Blurred Label Shadow + Icon + Name -->
+                <div class="flex items-center gap-2 px-2 py-0.5 rounded transition-all min-w-0 ${
+                  state.labelShadow ? 'bg-black/55 shadow-[0_0_10px_rgba(0,0,0,0.85)]' : ''
+                }">
+                  <span class="text-xs shrink-0 ${item.isRuleCutout ? 'ring-1 ring-cyan-400/60 rounded px-0.5 bg-black/60' : ''}">
+                    ${item.icon}
+                  </span>
+                  <span class="text-xs sm:text-[13px] font-medium truncate ${
+                    isSelected ? 'text-white font-semibold' : 'text-unity-text'
+                  } ${state.labelShadow ? 'unity-label-shadow' : ''}">
+                    ${item.name}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Right Side: Smart Component Type Badge -->
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${item.isRuleCutout ? `
+                  <span class="hidden sm:inline-block text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-unity-muted border border-white/10">
+                    IconRule
+                  </span>
+                ` : ''}
+                ${state.typeBadges ? `
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${getBadgeStyle(item.badgeColor)}">
+                    ${item.badge}
+                  </span>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Update targetY for spring cursor
+      const selectedIdx = visible.findIndex(i => i.id === state.selectedId);
+      if (selectedIdx >= 0) {
+        targetY = selectedIdx * ROW_HEIGHT;
+      }
+    }
+
+    // ==========================================
+    // 3. INTERACTION HANDLERS
+    // ==========================================
+    function selectRow(id, visibleIdx) {
+      state.selectedId = id;
+      targetY = visibleIdx * ROW_HEIGHT;
+      // Add subtle spring velocity impulse on selection change
+      _curV += (targetY - _curY) * 4.5;
+      spawnBurst(targetY + ROW_HEIGHT / 2, 14);
+
+      const item = hierarchyItems.find(i => i.id === id);
+      if (item) {
+        document.getElementById('selectedObjectPath').textContent = 
+          item.depth > 0 ? `MainLevel_Arena / Player_Controller / ${item.name}` : `MainLevel_Arena / ${item.name}`;
+      }
+      renderHierarchyRows();
+    }
+
+    function hoverRow(id) {
+      if (state.hoveredId === id) return;
+      state.hoveredId = id;
+      if (state.hideOnHover) {
+        renderHierarchyRows();
+      }
+    }
+
+    function selectTheme(themeId) {
+      const found = themes.find(t => t.id === themeId);
+      if (!found) return;
+      state.activeTheme = found;
+      document.getElementById('activeThemeBadge').textContent = `${found.name} (${found.pack})`;
+      document.getElementById('activeThemeBadge').style.borderColor = found.primary;
+      document.getElementById('activeThemeBadge').style.color = found.primary;
+
+      const cursorEl = document.getElementById('springCursor');
+      cursorEl.style.background = `linear-gradient(90deg, ${found.bgTint} 0%, rgba(255,255,255,0.04) 85%, transparent 100%)`;
+      cursorEl.style.borderLeft = `3px solid ${found.primary}`;
+
+      spawnBurst(_curY + ROW_HEIGHT / 2, 22);
+      renderThemeButtons();
+    }
+
+    // Spawn FX particles
+    function spawnBurst(yPos, count) {
+      if (state.fxLevel === 0) return;
+      const canvas = document.getElementById('fxCanvas');
+      const w = canvas.width || 500;
+      for (let i = 0; i < count * (state.fxLevel * 0.4 + 0.5); i++) {
+        particles.push({
+          x: Math.random() * w * 0.75 + 40,
+          y: yPos + (Math.random() - 0.5) * 18,
+          vx: (Math.random() - 0.3) * (2 + state.fxLevel * 0.8),
+          vy: (Math.random() - 0.5) * (2 + state.fxLevel * 0.5),
+          life: 1.0,
+          decay: 0.015 + Math.random() * 0.02,
+          size: 1.5 + Math.random() * 2.5,
+          color: Math.random() > 0.4 ? state.activeTheme.primary : state.activeTheme.secondary
+        });
+      }
+    }
+
+    // Bind Controls
+    document.getElementById('fxLevelSlider').addEventListener('input', (e) => {
+      state.fxLevel = parseInt(e.target.value, 10);
+      document.getElementById('fxLevelLabel').textContent = fxLabels[state.fxLevel];
+      spawnBurst(_curY + ROW_HEIGHT / 2, 16);
+    });
+
+    document.getElementById('toggleGlassBars').addEventListener('change', (e) => {
+      state.glassBars = e.target.checked;
+      renderHierarchyRows();
+    });
+    document.getElementById('toggleLabelShadow').addEventListener('change', (e) => {
+      state.labelShadow = e.target.checked;
+      renderHierarchyRows();
+    });
+    document.getElementById('toggleTypeBadges').addEventListener('change', (e) => {
+      state.typeBadges = e.target.checked;
+      renderHierarchyRows();
+    });
+    document.getElementById('toggleCustomBanner').addEventListener('change', (e) => {
+      state.customBanner = e.target.checked;
+      renderHierarchyRows();
+    });
+    document.getElementById('toggleHideOnHover').addEventListener('change', (e) => {
+      state.hideOnHover = e.target.checked;
+      renderHierarchyRows();
+    });
+
+    document.getElementById('triggerBurstBtn').addEventListener('click', () => {
+      state.joltTime = 1.0;
+      spawnBurst(_curY + ROW_HEIGHT / 2, 30);
+    });
+
+    document.getElementById('toggleExpandBtn').addEventListener('click', () => {
+      state.collapsed = !state.collapsed;
+      if (state.collapsed && (state.selectedId === 3 || state.selectedId === 5)) {
+        state.selectedId = 2;
+      }
+      renderHierarchyRows();
+    });
+
+    // ==========================================
+    // 4. SPRING PHYSICS & HTML5 CANVAS FX LOOP
+    // ==========================================
+    function resizeFxCanvas() {
+      const viewport = document.getElementById('hierarchyViewport');
+      const canvas = document.getElementById('fxCanvas');
+      if (!viewport || !canvas) return;
+      canvas.width = viewport.clientWidth;
+      canvas.height = viewport.clientHeight;
+    }
+
+    let lastTime = performance.now();
+    function animateLoop(now) {
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+
+      // Damped harmonic oscillator matching Unity Editor spring cursor
+      const stiffness = 260;
+      const damping = 22;
+      const force = (targetY - _curY) * stiffness;
+      _curV = (_curV + force * dt) * Math.exp(-damping * dt);
+      _curY += _curV * dt;
+
+      const cursorEl = document.getElementById('springCursor');
+      const viewportEl = document.getElementById('hierarchyViewport');
+      if (cursorEl) {
+        cursorEl.style.transform = `translateY(${_curY.toFixed(2)}px)`;
+      }
+
+      // Screen-space jolt effect (Level 5 Overdrive / Trigger Jolt)
+      if (state.joltTime > 0 && viewportEl) {
+        state.joltTime = Math.max(0, state.joltTime - dt * 3.5);
+        const jx = (Math.random() - 0.5) * 6 * state.joltTime;
+        const jy = (Math.random() - 0.5) * 4 * state.joltTime;
+        viewportEl.style.transform = `translate(${jx.toFixed(1)}px, ${jy.toFixed(1)}px)`;
+      } else if (viewportEl) {
+        viewportEl.style.transform = 'none';
+      }
+
+      // Update telemetry readout
+      const telemetry = document.getElementById('springTelemetry');
+      if (telemetry) {
+        telemetry.textContent = `y=${_curY.toFixed(1)}px | v=${_curV.toFixed(1)}`;
+      }
+
+      // Render Canvas FX
+      const canvas = document.getElementById('fxCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (state.fxLevel > 0) {
+        // Ambient theme scanline / pulse along active cursor row
+        const pulseAlpha = (0.12 + 0.08 * Math.sin(now * 0.006)) * (state.fxLevel / 5);
+        const grad = ctx.createLinearGradient(0, _curY, canvas.width, _curY + ROW_HEIGHT);
+        grad.addColorStop(0, state.activeTheme.primary + '44');
+        grad.addColorStop(0.5, state.activeTheme.secondary + '22');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.globalAlpha = pulseAlpha * 2.5;
+        ctx.fillRect(0, _curY, canvas.width, ROW_HEIGHT);
+        ctx.globalAlpha = 1;
+
+        // Ambient continuous particle emission at higher FX levels
+        if (state.fxLevel >= 2 && Math.random() < 0.18 * state.fxLevel) {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: state.activeTheme.particleType === 'matrix' ? 0 : _curY + Math.random() * ROW_HEIGHT,
+            vx: state.activeTheme.particleType === 'matrix' ? 0 : (Math.random() - 0.5) * 1.4,
+            vy: state.activeTheme.particleType === 'matrix' ? (2 + Math.random() * 2.5) : (-0.3 - Math.random() * 0.8),
+            life: 1.0,
+            decay: 0.012 + Math.random() * 0.015,
+            size: state.activeTheme.particleType === 'matrix' ? 2.2 : 1.8,
+            color: Math.random() > 0.35 ? state.activeTheme.primary : state.activeTheme.secondary
+          });
+        }
+
+        // Update and draw particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life -= p.decay;
+          if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          ctx.globalAlpha = p.life * (0.4 + state.fxLevel * 0.12);
+          ctx.fillStyle = p.color;
+          if (state.activeTheme.particleType === 'matrix') {
+            ctx.font = '10px JetBrains Mono';
+            ctx.fillText(Math.random() > 0.5 ? '1' : '0', p.x, p.y);
+          } else if (state.activeTheme.particleType === 'blueprint') {
+            ctx.strokeStyle = p.color;
+            ctx.strokeRect(p.x, p.y, p.size * 2, p.size * 2);
+          } else {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      requestAnimationFrame(animateLoop);
+    }
+
+    // ==========================================
+    // 5. CODE SNIPPET TABS & LIGHTBOX HELPERS
+    // ==========================================
+    const codeSnippets = {
+      asmdef: `{
+  "name": "CutHot.HierarchyStudio.Editor",
+  "rootNamespace": "CutHot.HierarchyStudio",
+  "references": [],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}`,
+      unity6: `// Unity 2021.3+ through Unity 6+ (UNITY_6000_4_OR_NEWER) Compatibility
+// HierarchyStudioWindow.cs automatically resolves instance identifiers across Unity versions:
+
+#if UNITY_6000_4_OR_NEWER
+    // Uses modern EntityId API in Unity 6.4+ without deprecation warnings
+    private static int GetObjectKey(GameObject go) => go.GetEntityId().GetHashCode();
+#else
+    // Seamless fallback to GetInstanceID() for Unity 2021.3 / 2022.3 / 6.0-6.3
+    private static int GetObjectKey(GameObject go) => go.GetInstanceID();
+#endif`
+    };
+
+    let currentCodeKey = 'asmdef';
+    function switchCodeTab(key) {
+      currentCodeKey = key;
+      document.getElementById('codeDisplayBlock').textContent = codeSnippets[key];
+      const asmBtn = document.getElementById('tabAsmdef');
+      const u6Btn = document.getElementById('tabUnity6');
+      if (key === 'asmdef') {
+        asmBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition';
+        u6Btn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-unity-surface text-unity-muted hover:text-white border border-unity-border transition';
+      } else {
+        u6Btn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition';
+        asmBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-unity-surface text-unity-muted hover:text-white border border-unity-border transition';
+      }
+    }
+
+    function copyCurrentCode() {
+      const text = codeSnippets[currentCodeKey];
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      const btnText = document.getElementById('copyBtnText');
+      btnText.textContent = 'Copied!';
+      setTimeout(() => { btnText.textContent = 'Copy Snippet'; }, 1800);
+    }
+
+    function openLightbox(type) {
+      const modal = document.getElementById('lightboxModal');
+      const title = document.getElementById('lightboxTitle');
+      const desc = document.getElementById('lightboxDesc');
+      if (type === 'studio-window') {
+        title.textContent = 'Dockable Hierarchy Studio Control Panel';
+        desc.textContent = 'Accessible via Tools > CutHot > Hierarchy Studio. Provides real-time sliders for Texture2D UV Crop/Zoom, Left-to-Right Opacity Fades, Square Glass Bar opacity, 3-Slice Label Shadows, and 102 Animated Themes.';
+      } else {
+        title.textContent = 'Multi-Row Banner Spread & Smart Component Badges';
+        desc.textContent = 'When spreadAcrossSelection is enabled, Hierarchy Studio computes the combined vertical bounding rect of your selected GameObjects and maps a single Texture2D seamlessly across all rows while automatically tagging Camera, Light, UI, FX, Audio, and Mesh components.';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxModal').classList.add('hidden');
+    }
+
+    // ==========================================
+    // 6. INITIALIZATION ON WINDOW LOAD
+    // ==========================================
+    window.addEventListener('resize', resizeFxCanvas);
+    window.onload = function () {
+      renderThemeButtons();
+      renderHierarchyRows();
+      switchCodeTab('asmdef');
+      resizeFxCanvas();
+      _curY = 2 * ROW_HEIGHT;
+      targetY = 2 * ROW_HEIGHT;
+      requestAnimationFrame(animateLoop);
+    };
+  </script>
+</body>
+</html>
